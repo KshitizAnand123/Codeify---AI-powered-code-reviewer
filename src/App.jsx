@@ -87,7 +87,7 @@ const App = () => {
       setResponse("");
       setLoading(true);
 
-      const res = await fetch("http://localhost:3001/review", {
+      const res = await fetch("https://codeify-ai-powered-code-reviewer.onrender.com/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
