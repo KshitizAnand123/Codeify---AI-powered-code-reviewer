@@ -47,6 +47,38 @@ Analyze it like a senior developer reviewing a pull request.
   }
 });
 
+app.post("/fix", async (req, res) => {
+  const { code, language } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ error: "No code provided" });
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `
+You are an expert developer.
+
+Fix the following ${language} code:
+- Correct all errors
+- Improve readability
+- Optimize performance
+- Follow best practices
+
+Return ONLY the improved code. Do not add explanations.
+
+Code:
+${code}
+      `,
+    });
+
+    res.json({ fixedCode: response.text });
+  } catch (err) {
+    res.status(500).json({ error: "AI fix failed" });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
