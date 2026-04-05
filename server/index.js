@@ -66,7 +66,10 @@ Fix the following ${language} code:
 - Optimize performance
 - Follow best practices
 
-Return ONLY the improved code. Do not add explanations.
+Return ONLY the improved code.
+Do NOT include markdown formatting.
+Do NOT include \`\`\` or language tags.
+Do NOT include explanations.
 
 Code:
 ${code}
