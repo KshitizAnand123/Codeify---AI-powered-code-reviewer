@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
 app.post("/review", async (req, res) => {
   const { code, language } = req.body;
@@ -20,8 +20,7 @@ app.post("/review", async (req, res) => {
   }
 
   try {
-    const response = await model.generateContent({
-      model: "gemini-1.5-flash",
+    const result = await model.generateContent({
       contents: [
         {  
           role: "user",
@@ -45,7 +44,8 @@ Analyze it like a senior developer reviewing a pull request.
         }
       ]  
     });
-
+    const response = result.response;
+    
     res.json({ text: response.text });
   } catch (err) {
     console.error("Gemini Error:", err);  // 👈 ADD THIS
@@ -61,9 +61,13 @@ app.post("/fix", async (req, res) => {
   }
 
   try {
-    const response = await model.generateContent({
-      model: "gemini-1.5-flash",
-      contents: `
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text:`
 You are an expert developer.
 
 Fix the following ${language} code:
@@ -79,8 +83,14 @@ Do NOT include explanations.
 
 Code:
 ${code}
-      `,
+      `
+            }
+          ]
+        }
+      ]
     });
+
+    const response = result.response;
 
     res.json({ fixedCode: response.text });
   } catch (err) {
