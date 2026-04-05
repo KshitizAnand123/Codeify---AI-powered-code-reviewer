@@ -22,7 +22,7 @@ app.post("/review", async (req, res) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `
 You are a senior developer.
 Review the following ${language} code:
@@ -43,6 +43,7 @@ Analyze it like a senior developer reviewing a pull request.
 
     res.json({ text: response.text });
   } catch (err) {
+    console.error("Gemini Error:", err);  // 👈 ADD THIS
     res.status(500).json({ error: "AI review failed" });
   }
 });
@@ -56,7 +57,7 @@ app.post("/fix", async (req, res) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       contents: `
 You are an expert developer.
 
@@ -78,6 +79,7 @@ ${code}
 
     res.json({ fixedCode: response.text });
   } catch (err) {
+    console.error("Gemini Error:", err);  // 👈 ADD THIS
     res.status(500).json({ error: "AI fix failed" });
   }
 });
