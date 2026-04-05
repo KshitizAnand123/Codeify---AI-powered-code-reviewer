@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -9,9 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 app.post("/review", async (req, res) => {
   const { code, language } = req.body;
@@ -21,7 +20,7 @@ app.post("/review", async (req, res) => {
   }
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await model.generateContent({
       model: "gemini-1.5-flash",
       contents: `
 You are a senior developer.
@@ -56,7 +55,7 @@ app.post("/fix", async (req, res) => {
   }
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await model.generateContent({
       model: "gemini-1.5-flash",
       contents: `
 You are an expert developer.
