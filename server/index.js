@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
 app.post("/review", async (req, res) => {
   const { code, language } = req.body;
@@ -45,7 +45,7 @@ Analyze it like a senior developer reviewing a pull request.
       ]  
     });
     const response = result.response;
-
+    
     res.json({ text: response.text });
   } catch (err) {
     console.error("Gemini Error:", err);  // 👈 ADD THIS
