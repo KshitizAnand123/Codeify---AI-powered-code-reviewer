@@ -22,7 +22,10 @@ app.post("/review", async (req, res) => {
   try {
     const response = await model.generateContent({
       model: "gemini-1.5-flash",
-      contents: `
+      contents: [
+        {  
+          role: "user",
+          parts: [{ text: `
 You are a senior developer.
 Review the following ${language} code:
 
@@ -37,7 +40,10 @@ Your job is to deeply review this code and provide the following:
 6. Solutions and recommendations on how to fix each identified issue.
 
 Analyze it like a senior developer reviewing a pull request.
-      `,
+      `     }
+          ]
+        }
+      ]  
     });
 
     res.json({ text: response.text });
