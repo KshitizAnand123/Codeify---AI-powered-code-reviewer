@@ -109,6 +109,40 @@ const App = () => {
     }
   }
 
+  async function fixCode() {
+    try {
+      if (!code.trim()) {
+        alert("Please enter code first");
+        return;
+      }
+
+      setResponse("");
+      setLoading(true);
+
+      const res = await fetch("http://localhost:3001/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          language: selectedOption.value,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fix code");
+      }
+
+      const data = await res.json();
+      const fixedCode = data.text || "No response received.";
+      setCode(fixedCode);
+      setResponse("Code has been fixed! The corrected code is now in the editor.");
+    } catch (err) {
+      setResponse("Error while fixing code. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -128,9 +162,13 @@ const App = () => {
             />
 
             <button
-              className="btnNormal bg-zinc-900 min-w-[120px] transition-all hover:bg-zinc-800"
+              onClick={fixCode}
+              disabled={loading}
+              className={`btnNormal bg-zinc-900 min-w-[120px] transition-all hover:bg-zinc-800 ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Fix Code
+              {loading ? "Fixing..." : "Fix Code"}
             </button>
 
             <button

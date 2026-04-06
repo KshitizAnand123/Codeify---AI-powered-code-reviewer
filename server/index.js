@@ -47,6 +47,33 @@ Analyze it like a senior developer reviewing a pull request.
   }
 });
 
+app.post("/fix", async (req, res) => {
+  const { code, language } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ error: "No code provided" });
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `You are a senior developer. Fix the following ${language} code by correcting any bugs, improving syntax, and following best practices. Return only the corrected code without any explanations or markdown formatting.
+
+${code}`,
+    });
+
+    // Extract just the code from the response
+    let fixedCode = response.text || "";
+    
+    // Clean up the response - remove markdown code blocks if present
+    fixedCode = fixedCode.replace(/^```[a-zA-Z]*\n?/gm, "").replace(/```\n?$/gm, "").trim();
+    
+    res.json({ text: fixedCode });
+  } catch (err) {
+    res.status(500).json({ error: "AI fix failed" });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
