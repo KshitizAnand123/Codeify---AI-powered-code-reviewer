@@ -39,7 +39,6 @@ const App = () => {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState("");
-  const [previousCode, setPreviousCode] = useState("");
 
   const customStyles = {
     control: (provided) => ({
@@ -110,49 +109,6 @@ const App = () => {
     }
   }
 
-  async function fixCode() {
-    try {
-      if (!code) {
-        alert("Please enter code first");
-        return;
-      }
-
-      setLoading(true);
-
-      const res = await fetch("https://codeify-ai-powered-code-reviewer.onrender.com/fix", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code,
-          language: selectedOption.value,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.fixedCode) {
-        setPreviousCode(code);      // store old code
-        setCode(data.fixedCode);    // replace with new code
-      } else {
-        alert("Failed to fix code");
-      }
-
-    } catch (err) {
-      alert("Error fixing code");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function undoFix() {
-    if (previousCode) {
-      setCode(previousCode);
-      setPreviousCode("");
-    }
-  }
-
   return (
     <>
       <Navbar />
@@ -172,17 +128,9 @@ const App = () => {
             />
 
             <button
-              onClick={fixCode}
               className="btnNormal bg-zinc-900 min-w-[120px] transition-all hover:bg-zinc-800"
             >
               Fix Code
-            </button>
-
-            <button
-              onClick={undoFix}
-              className="btnNormal bg-zinc-900 min-w-[120px] transition-all hover:bg-zinc-800"
-            >
-              Undo
             </button>
 
             <button
