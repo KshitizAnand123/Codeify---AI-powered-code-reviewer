@@ -365,18 +365,18 @@ const App = () => {
         ) : (
           <>
             {/* GITHUB MODE */}
-            <div className="w-full bg-zinc-900 overflow-auto">
-              <div className="max-w-6xl mx-auto p-8">
+            <div className="w-full bg-zinc-900 overflow-auto min-h-screen">
+              <div className="max-w-7xl mx-auto p-8">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="mb-10">
                   <button
                     onClick={() => setMode("editor")}
                     className="btnNormal bg-zinc-800 mb-6 hover:bg-zinc-700 px-6 py-3 text-sm font-medium"
                   >
                     ← Back to Editor
                   </button>
-                  <h1 className="text-4xl font-bold text-white mb-3">GitHub Integration</h1>
-                  <p className="text-zinc-400 text-lg leading-relaxed">Review and fix your GitHub repository code automatically</p>
+                  <h1 className="text-5xl font-bold text-white mb-4">GitHub Integration</h1>
+                  <p className="text-zinc-400 text-xl leading-relaxed">Review and fix your GitHub repository code automatically</p>
                 </div>
 
                 {/* GitHub Setup */}
@@ -464,20 +464,45 @@ const App = () => {
                 {/* Reviews */}
                 {reviewsGenerated && githubReviews.length > 0 && (
                   <div className="bg-zinc-800 rounded-xl p-8 mb-8 shadow-lg">
-                    <h2 className="text-2xl font-bold text-white mb-6">Review Results</h2>
+                    <h2 className="text-3xl font-bold text-white mb-8">Review Results & Fixed Code</h2>
 
-                    <div className="space-y-6 max-h-96 overflow-y-auto">
+                    <div className="space-y-8">
                       {githubReviews.map((review, idx) => (
-                        <div key={idx} className="bg-zinc-900/70 rounded-lg p-6 border border-zinc-700 hover:border-zinc-600 transition-colors">
-                          <h3 className="text-lg font-semibold text-purple-400 mb-4 flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                        <div key={idx} className="bg-zinc-900/70 rounded-xl p-6 border border-zinc-700 hover:border-zinc-600 transition-colors">
+                          <h3 className="text-xl font-semibold text-purple-400 mb-6 flex items-center">
+                            <span className="w-3 h-3 bg-purple-400 rounded-full mr-3"></span>
                             {review.filePath}
                           </h3>
+
                           {review.error ? (
-                            <p className="text-red-400 bg-red-900/20 p-3 rounded border border-red-800">Error: {review.error}</p>
+                            <p className="text-red-400 bg-red-900/20 p-4 rounded-lg border border-red-800">Error: {review.error}</p>
                           ) : (
-                            <div className="text-zinc-200 text-sm leading-relaxed max-h-64 overflow-y-auto prose prose-invert prose-sm max-w-none">
-                              <Markdown>{review.review}</Markdown>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Review Section */}
+                              <div className="space-y-4">
+                                <h4 className="text-lg font-semibold text-blue-400 flex items-center">
+                                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                                  Code Review
+                                </h4>
+                                <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-600 max-h-96 overflow-y-auto">
+                                  <div className="text-zinc-200 text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                                    <Markdown>{review.review}</Markdown>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Fixed Code Section */}
+                              <div className="space-y-4">
+                                <h4 className="text-lg font-semibold text-green-400 flex items-center">
+                                  <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                                  Fixed Code (Will be pushed to PR)
+                                </h4>
+                                <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-600 max-h-96 overflow-y-auto">
+                                  <pre className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                                    <code>{review.fixedCode}</code>
+                                  </pre>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -489,20 +514,32 @@ const App = () => {
                 {/* PR Creation */}
                 {reviewsGenerated && githubReviews.length > 0 && (
                   <div className="bg-zinc-800 rounded-xl p-8 shadow-lg">
-                    <h2 className="text-2xl font-bold text-white mb-6">Create Pull Request</h2>
+                    <h2 className="text-3xl font-bold text-white mb-8 text-center">Create Pull Request</h2>
 
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-semibold text-zinc-300 mb-3">
-                          Branch Name
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="codeify-ai-fixes"
-                          value={branchName}
-                          onChange={(e) => setBranchName(e.target.value)}
-                          className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                        />
+                    <div className="max-w-2xl mx-auto space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-zinc-300 mb-3">
+                            Branch Name
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="codeify-ai-fixes"
+                            value={branchName}
+                            onChange={(e) => setBranchName(e.target.value)}
+                            className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <div className="w-full">
+                            <label className="block text-sm font-semibold text-zinc-300 mb-3 opacity-0">
+                              Placeholder
+                            </label>
+                            <div className="text-sm text-zinc-400 bg-zinc-700/50 p-3 rounded-lg">
+                              <strong>{githubReviews.length}</strong> file(s) will be updated in the PR
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <label className="flex items-start space-x-4 cursor-pointer p-6 bg-zinc-900/50 rounded-lg border border-zinc-700 hover:border-purple-500 transition-colors">
@@ -517,15 +554,17 @@ const App = () => {
                         </span>
                       </label>
 
-                      <button
-                        onClick={createPullRequest}
-                        disabled={githubLoading || !prConsent}
-                        className={`w-full btnNormal bg-green-600 hover:bg-green-700 transition-all py-3 text-base font-medium ${
-                          githubLoading || !prConsent ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg"
-                        }`}
-                      >
-                        {githubLoading ? "Creating PR..." : "Create Pull Request"}
-                      </button>
+                      <div className="flex justify-center">
+                        <button
+                          onClick={createPullRequest}
+                          disabled={githubLoading || !prConsent}
+                          className={`btnNormal bg-green-600 hover:bg-green-700 transition-all py-4 px-12 text-lg font-medium ${
+                            githubLoading || !prConsent ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg"
+                          }`}
+                        >
+                          {githubLoading ? "Creating PR..." : "Create Pull Request"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
