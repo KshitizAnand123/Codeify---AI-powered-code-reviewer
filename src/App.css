@@ -22,46 +22,55 @@ body{
 }
 
 .btnNormal{
-  padding: 10px;
+  padding: 12px 16px;
   color: #fff;
-  border-radius: 10px;
-  border:0;
-  outline:0;
+  border-radius: 8px;
+  border: 0;
+  outline: 0;
   cursor: pointer;
-
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 p{
-  margin-top: 10px !important;
-  margin-bottom: 10px !important;
-  color: gray;
+  margin-top: 12px !important;
+  margin-bottom: 12px !important;
+  color: #d1d5db;
+  line-height: 1.6;
 }
 
 p > strong{
-  color: #fff;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 h3{
-  font-weight: bold;
-  font-size: 20px !important;
+  font-weight: 600;
+  font-size: 18px !important;
+  color: #ffffff;
+  margin-bottom: 8px;
 }
 
 h4{
-  color:bisque !important;
-  font-weight: bolder;
-  font-style:normal;
-  font-size: 15px !important;
-  padding-top: 10px !important;
+  color: #fbbf24 !important;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 16px !important;
+  padding-top: 12px !important;
+  margin-bottom: 8px;
 }
 
 ul li{
-  color: gray;
-  margin-top: 10px !important;
-  list-style: circle !important;
+  color: #d1d5db;
+  margin-top: 8px !important;
+  list-style: disc !important;
+  margin-left: 20px;
+  line-height: 1.5;
 }
 
 li strong{
-  color: #fff;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 hr {
@@ -70,9 +79,14 @@ hr {
 }
 
 pre{
-  background-color: #2d2d2f !important;
-  padding: 10px;
-  min-width: max-content;
+  background-color: #1f2937 !important;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #374151;
+  margin: 16px 0;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 

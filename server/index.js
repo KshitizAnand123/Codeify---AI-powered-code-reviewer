@@ -227,13 +227,14 @@ app.post("/github/create-pr", async (req, res) => {
       repo = match[2].replace(".git", "");
     } else {
       const parts = repoUrl.split("/");
+      if (parts.length !== 2) throw new Error("Invalid repo format");
       owner = parts[0];
       repo = parts[1];
     }
 
     const octokit = new Octokit({ auth: token });
 
-    // Get the default branch
+    // Validate access and get default branch
     const { data: repoData } = await octokit.rest.repos.get({ owner, repo });
     const baseBranch = repoData.default_branch;
 
@@ -245,13 +246,26 @@ app.post("/github/create-pr", async (req, res) => {
     });
     const baseCommitSha = refData.object.sha;
 
-    // Create new branch
-    await octokit.rest.git.createRef({
-      owner,
-      repo,
-      ref: `refs/heads/${branchName}`,
-      sha: baseCommitSha,
-    });
+    // Create new branch only if it does not already exist
+    try {
+      await octokit.rest.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${branchName}`,
+      });
+      console.log(`Branch ${branchName} already exists, continuing with it.`);
+    } catch (branchErr) {
+      if (branchErr.status === 404) {
+        await octokit.rest.git.createRef({
+          owner,
+          repo,
+          ref: `refs/heads/${branchName}`,
+          sha: baseCommitSha,
+        });
+      } else {
+        throw branchErr;
+      }
+    }
 
     // Update files with fixed code
     for (const review of reviews) {
@@ -289,7 +303,14 @@ app.post("/github/create-pr", async (req, res) => {
       message: "Pull request created successfully!",
     });
   } catch (err) {
-    res.status(500).json({ error: err.message || "Failed to create pull request" });
+    const message = err.message || "Failed to create pull request";
+    const guidance = message.includes("Resource not accessible by personal access token")
+      ? "Make sure your GitHub PAT has the `repo` scope and write access to this repository. If the repo belongs to an organization, ensure the token is granted access to that organization."
+      : "";
+
+    res.status(500).json({
+      error: `${message}${guidance ? ` ${guidance}` : ""}`,
+    });
   }
 });
 
