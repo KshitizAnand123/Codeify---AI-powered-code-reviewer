@@ -239,7 +239,7 @@ const App = () => {
       const data = await res.json();
       setGithubReviews(data.reviews);
       setReviewsGenerated(true);
-      setGithubResponse(`Successfully reviewed ${data.reviews.length} file(s). Review results are displayed below.`);
+      setGithubResponse(`Review completed. Review results appear below.`);
     } catch (err) {
       console.error("GitHub review error:", err);
       setGithubResponse(`Error: ${err.message || "Unknown error occurred"}`);
@@ -365,139 +365,170 @@ const App = () => {
         ) : (
           <>
             {/* GITHUB MODE */}
-            <div className="w-full bg-zinc-900 overflow-auto min-h-screen">
-              <div className="max-w-7xl mx-auto p-8">
+            <div className="w-full min-h-screen bg-zinc-900 overflow-auto flex justify-center">
+              <div className="max-w-6xl w-full mx-auto px-10 py-16">
                 {/* Header */}
-                <div className="mb-10">
-                  <button
-                    onClick={() => setMode("editor")}
-                    className="btnNormal bg-zinc-800 mb-6 hover:bg-zinc-700 px-6 py-3 text-sm font-medium"
-                  >
-                    ← Back to Editor
-                  </button>
-                  <h1 className="text-5xl font-bold text-white mb-4">GitHub Integration</h1>
-                  <p className="text-zinc-400 text-xl leading-relaxed">Review and fix your GitHub repository code automatically</p>
+                <div className="text-center mb-16">
+                  <div className="flex justify-center mb-8">
+                    <button
+                      onClick={() => setMode("editor")}
+                      className="btnNormal bg-zinc-800 hover:bg-zinc-700 px-8 py-3 text-sm font-medium"
+                    >
+                      ← Back to Editor
+                    </button>
+                  </div>
+                  <h1 className="text-6xl font-bold text-white mb-6">GitHub Integration</h1>
+                  <p className="text-zinc-400 text-xl leading-relaxed max-w-3xl mx-auto">Review and fix your GitHub repository code automatically</p>
                 </div>
 
                 {/* GitHub Setup */}
-                <div className="bg-zinc-800 rounded-xl p-8 mb-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-white mb-6">Repository Details</h2>
+                <div className="bg-zinc-800 rounded-2xl p-12 mb-12 shadow-2xl">
+                  <h2 className="text-4xl font-bold text-white mb-10 text-center">Repository Details</h2>
 
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-zinc-300 mb-3">
-                        GitHub Repository URL
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="https://github.com/owner/repo or owner/repo"
-                        value={repoUrl}
-                        onChange={(e) => setRepoUrl(e.target.value)}
-                        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                        disabled={filesFetched}
-                      />
+                  <div className="space-y-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div>
+                        <label className="block text-base font-semibold text-zinc-300 mb-4">
+                          GitHub Repository URL
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="https://github.com/owner/repo or owner/repo"
+                          value={repoUrl}
+                          onChange={(e) => setRepoUrl(e.target.value)}
+                          className="w-full bg-zinc-700 text-white px-6 py-4 rounded-xl border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-base"
+                          disabled={filesFetched}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-base font-semibold text-zinc-300 mb-4">
+                          GitHub Personal Access Token
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="ghp_xxxxxxxxxxxxx"
+                          value={githubToken}
+                          onChange={(e) => setGithubToken(e.target.value)}
+                          className="w-full bg-zinc-700 text-white px-6 py-4 rounded-xl border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-base"
+                          disabled={filesFetched}
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-zinc-300 mb-3">
-                        GitHub Personal Access Token
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="ghp_xxxxxxxxxxxxx"
-                        value={githubToken}
-                        onChange={(e) => setGithubToken(e.target.value)}
-                        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                        disabled={filesFetched}
-                      />
-                      <p className="text-sm text-zinc-500 mt-2 leading-relaxed">
-                        Create a token at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline hover:text-purple-300 transition-colors">github.com/settings/tokens</a>
+                    <div className="text-center space-y-6">
+                      <p className="text-base text-zinc-500 leading-relaxed max-w-2xl mx-auto">
+                        Create a token at <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline hover:text-purple-300 transition-colors font-medium">github.com/settings/tokens</a>
                       </p>
-                    </div>
 
-                    <button
-                      onClick={fetchGithubFiles}
-                      disabled={githubLoading || filesFetched}
-                      className={`w-full btnNormal bg-purple-600 hover:bg-purple-700 transition-all py-3 text-base font-medium ${
-                        githubLoading || filesFetched ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg"
-                      }`}
-                    >
-                      {githubLoading ? "Fetching files..." : filesFetched ? "Files fetched" : "Fetch Repository Files"}
-                    </button>
+                      <button
+                        onClick={fetchGithubFiles}
+                        disabled={githubLoading || filesFetched}
+                        className={`btnNormal bg-purple-600 hover:bg-purple-700 transition-all py-5 px-12 text-lg font-medium rounded-xl ${
+                          githubLoading || filesFetched ? "opacity-50 cursor-not-allowed" : "hover:shadow-2xl hover:scale-105"
+                        }`}
+                      >
+                        {githubLoading ? "Fetching files..." : filesFetched ? "Files fetched" : "Fetch Repository Files"}
+                      </button>
+                    </div>
+                    <br />
                   </div>
                 </div>
-
+                <br />
                 {/* File Selection */}
                 {filesFetched && (
-                  <div className="bg-zinc-800 rounded-xl p-8 mb-8 shadow-lg">
-                    <h2 className="text-2xl font-bold text-white mb-6">
-                      Select Files to Review <span className="text-sm font-normal text-zinc-400">({selectedFiles.length}/{availableFiles.length} selected)</span>
+                  <div className="bg-zinc-800 rounded-2xl p-12 mb-12 shadow-2xl">
+                    <h2 className="text-4xl font-bold text-white mb-10 text-center">
+                      Select Files to Review <span className="text-2xl font-normal text-zinc-400">({selectedFiles.length}/{availableFiles.length} selected)</span>
                     </h2>
-
-                    <div className="max-h-96 overflow-y-auto space-y-3 mb-6 border border-zinc-700 rounded-lg p-6 bg-zinc-900/50">
+                    <br />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                       {availableFiles.map((file) => (
-                        <label key={file.path} className="flex items-center space-x-4 cursor-pointer hover:bg-zinc-800 p-3 rounded-lg transition-colors">
+                        <label key={file.path} className="flex items-center space-x-4 cursor-pointer hover:bg-zinc-800 p-6 rounded-xl transition-all duration-200 border border-zinc-700 hover:border-zinc-600 hover:shadow-lg">
                           <input
                             type="checkbox"
                             checked={selectedFiles.includes(file.path)}
                             onChange={() => toggleFileSelection(file.path)}
-                            className="w-5 h-5 accent-purple-600 rounded"
+                            className="w-6 h-6 accent-purple-600 rounded"
                           />
-                          <span className="text-zinc-300 font-medium flex-1">{file.name}</span>
-                          <span className="text-sm text-zinc-500 bg-zinc-700 px-2 py-1 rounded">{(file.size / 1024).toFixed(2)} KB</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-zinc-300 font-medium block truncate text-base">{file.name}</span>
+                            <span className="text-sm text-zinc-500">{(file.size / 1024).toFixed(2)} KB</span>
+                          </div>
                         </label>
                       ))}
+                    
                     </div>
-
-                    <button
-                      onClick={reviewGithubFiles}
-                      disabled={githubLoading || selectedFiles.length === 0 || reviewsGenerated}
-                      className={`w-full btnNormal bg-blue-600 hover:bg-blue-700 transition-all py-3 text-base font-medium ${
-                        githubLoading || selectedFiles.length === 0 || reviewsGenerated ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg"
-                      }`}
-                    >
-                      {githubLoading ? "Reviewing files..." : reviewsGenerated ? "Files reviewed" : "Review Selected Files"}
-                    </button>
+                    <br />
+                    <div className="flex justify-center">
+                      <button
+                        onClick={reviewGithubFiles}
+                        disabled={githubLoading || selectedFiles.length === 0 || reviewsGenerated}
+                        className={`btnNormal bg-blue-600 hover:bg-blue-700 transition-all py-5 px-12 text-lg font-medium rounded-xl ${
+                          githubLoading || selectedFiles.length === 0 || reviewsGenerated ? "opacity-50 cursor-not-allowed" : "hover:shadow-2xl hover:scale-105"
+                        }`}
+                      >
+                        {githubLoading ? "Reviewing files..." : reviewsGenerated ? "Files reviewed" : "Review Selected Files"}
+                      </button>
+                    </div>
+                    <br />
                   </div>
                 )}
-
+                <br />
+                {githubResponse && (
+                  <div className="bg-zinc-800 rounded-2xl p-10 mb-16 shadow-2xl">
+                    <h2 className="text-3xl font-bold text-white mb-8 text-center">Status</h2>
+                    <br />
+                    <div className={`p-8 rounded-2xl font-medium text-base leading-relaxed space-y-5 ${
+                      githubResponse.includes("Error:")
+                        ? "bg-red-900/20 border border-red-500 text-red-200"
+                        : "bg-green-900/20 border border-green-500 text-green-200"
+                    }`}>
+                      <Markdown>{githubResponse}</Markdown>
+                    </div>
+                    <br />
+                  </div>
+                )}
+                <br />
                 {/* Reviews */}
                 {reviewsGenerated && githubReviews.length > 0 && (
-                  <div className="bg-zinc-800 rounded-xl p-8 mb-8 shadow-lg">
-                    <h2 className="text-3xl font-bold text-white mb-8">Review Results & Fixed Code</h2>
-
-                    <div className="space-y-8">
+                  <div className="bg-zinc-800 rounded-2xl p-12 mb-12 shadow-2xl">
+                    <br />
+                    <h2 className="text-4xl font-bold text-white mb-12 text-center">Review Results & Fixed Code</h2>
+                    <br />
+                    <div className="space-y-10">
                       {githubReviews.map((review, idx) => (
-                        <div key={idx} className="bg-zinc-900/70 rounded-xl p-6 border border-zinc-700 hover:border-zinc-600 transition-colors">
-                          <h3 className="text-xl font-semibold text-purple-400 mb-6 flex items-center">
-                            <span className="w-3 h-3 bg-purple-400 rounded-full mr-3"></span>
+                        <div key={idx} className="bg-zinc-900/70 rounded-2xl p-8 border border-zinc-700 hover:border-zinc-600 transition-all duration-200 shadow-lg">
+                          <br />
+                          <h3 className="text-2xl font-semibold text-purple-400 mb-8 flex items-center justify-center">
+                            <span className="w-4 h-4 bg-purple-400 rounded-full mr-4"></span>
                             {review.filePath}
                           </h3>
 
                           {review.error ? (
-                            <p className="text-red-400 bg-red-900/20 p-4 rounded-lg border border-red-800">Error: {review.error}</p>
+                            <p className="text-red-400 bg-red-900/20 p-6 rounded-xl border border-red-800 text-center text-lg">Error: {review.error}</p>
                           ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                               {/* Review Section */}
-                              <div className="space-y-4">
-                                <h4 className="text-lg font-semibold text-blue-400 flex items-center">
-                                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                              <div className="space-y-6">
+                                <h4 className="text-xl font-semibold text-blue-400 flex items-center justify-center">
+                                  <span className="w-3 h-3 bg-blue-400 rounded-full mr-3"></span>
                                   Code Review
                                 </h4>
-                                <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-600 max-h-96 overflow-y-auto">
-                                  <div className="text-zinc-200 text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-600 max-h-96 overflow-y-auto shadow-inner">
+                                  <div className="text-zinc-200 text-base leading-relaxed prose prose-invert prose-base max-w-none">
                                     <Markdown>{review.review}</Markdown>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Fixed Code Section */}
-                              <div className="space-y-4">
-                                <h4 className="text-lg font-semibold text-green-400 flex items-center">
-                                  <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                              <div className="space-y-6">
+                                <h4 className="text-xl font-semibold text-green-400 flex items-center justify-center">
+                                  <span className="w-3 h-3 bg-green-400 rounded-full mr-3"></span>
                                   Fixed Code (Will be pushed to PR)
                                 </h4>
-                                <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-600 max-h-96 overflow-y-auto">
+                                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-600 max-h-96 overflow-y-auto shadow-inner">
                                   <pre className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap font-mono">
                                     <code>{review.fixedCode}</code>
                                   </pre>
@@ -510,16 +541,16 @@ const App = () => {
                     </div>
                   </div>
                 )}
-
+                <br />
                 {/* PR Creation */}
                 {reviewsGenerated && githubReviews.length > 0 && (
-                  <div className="bg-zinc-800 rounded-xl p-8 shadow-lg">
-                    <h2 className="text-3xl font-bold text-white mb-8 text-center">Create Pull Request</h2>
-
-                    <div className="max-w-2xl mx-auto space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-zinc-800 rounded-2xl p-12 shadow-2xl">
+                    <h2 className="text-4xl font-bold text-white mb-12 text-center">Create Pull Request</h2>
+                    <br />
+                    <div className="max-w-4xl mx-auto space-y-10">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                          <label className="block text-sm font-semibold text-zinc-300 mb-3">
+                          <label className="block text-base font-semibold text-zinc-300 mb-4">
                             Branch Name
                           </label>
                           <input
@@ -527,58 +558,49 @@ const App = () => {
                             placeholder="codeify-ai-fixes"
                             value={branchName}
                             onChange={(e) => setBranchName(e.target.value)}
-                            className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                            className="w-full bg-zinc-700 text-white px-6 py-4 rounded-xl border border-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-base"
                           />
                         </div>
                         <div className="flex items-end">
                           <div className="w-full">
-                            <label className="block text-sm font-semibold text-zinc-300 mb-3 opacity-0">
+                            <label className="block text-base font-semibold text-zinc-300 mb-4 opacity-0">
                               Placeholder
                             </label>
-                            <div className="text-sm text-zinc-400 bg-zinc-700/50 p-3 rounded-lg">
-                              <strong>{githubReviews.length}</strong> file(s) will be updated in the PR
+                            <div className="text-base text-zinc-400 bg-zinc-700/50 p-4 rounded-xl border border-zinc-600">
+                              <strong className="text-white">{githubReviews.length}</strong> file(s) will be updated in the PR
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      <label className="flex items-start space-x-4 cursor-pointer p-6 bg-zinc-900/50 rounded-lg border border-zinc-700 hover:border-purple-500 transition-colors">
+                      <br />
+                      <label className="flex items-start gap-5 cursor-pointer p-8 bg-zinc-900/50 rounded-2xl border border-zinc-700 hover:border-purple-500 transition-all duration-200 shadow-lg">
                         <input
                           type="checkbox"
                           checked={prConsent}
                           onChange={(e) => setPrConsent(e.target.checked)}
-                          className="w-5 h-5 accent-purple-600 rounded mt-0.5"
+                          className="w-6 h-6 accent-purple-600 rounded mt-1"
                         />
-                        <span className="text-zinc-200 leading-relaxed">
+                        <span className="text-zinc-200 leading-relaxed text-lg max-w-4xl">
                           I consent to create a pull request with the automated fixes in this repository
                         </span>
                       </label>
-
-                      <div className="flex justify-center">
+                      <br />
+                      <div className="grid place-items-center pt-6">
                         <button
                           onClick={createPullRequest}
                           disabled={githubLoading || !prConsent}
-                          className={`btnNormal bg-green-600 hover:bg-green-700 transition-all py-4 px-12 text-lg font-medium ${
-                            githubLoading || !prConsent ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg"
+                          className={`btnNormal inline-flex items-center justify-center bg-green-600 hover:bg-green-700 transition-all py-5 px-16 text-xl font-medium rounded-2xl w-fit ${
+                            githubLoading || !prConsent ? "opacity-50 cursor-not-allowed" : "hover:shadow-2xl hover:scale-105"
                           }`}
                         >
                           {githubLoading ? "Creating PR..." : "Create Pull Request"}
                         </button>
                       </div>
+                      <br />
                     </div>
                   </div>
                 )}
 
-                {/* Response/Status */}
-                {githubResponse && (
-                  <div className={`mt-8 p-6 rounded-lg font-medium ${
-                    githubResponse.includes("Error:") 
-                      ? "bg-red-900/30 border border-red-600 text-red-100" 
-                      : "bg-green-900/30 border border-green-600 text-green-100"
-                  }`}>
-                    <Markdown>{githubResponse}</Markdown>
-                  </div>
-                )}
               </div>
             </div>
           </>

@@ -32,6 +32,10 @@ body{
   transition: all 0.2s ease;
 }
 
+.grid input[type="checkbox"]{
+  margin-right: 8px;
+}
+
 p{
   margin-top: 12px !important;
   margin-bottom: 12px !important;

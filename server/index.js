@@ -10,9 +10,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const rawGeminiKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "";
+const geminiApiKeys = rawGeminiKeys
+  .split(/[,;\n\r]+/)
+  .map((key) => key.trim())
+  .filter(Boolean);
+let currentGeminiKeyIndex = 0;
+
+if (geminiApiKeys.length === 0) {
+  throw new Error("No Gemini API key configured. Set GEMINI_API_KEY or GEMINI_API_KEYS in .env.");
+}
+
+const getCurrentGeminiKey = () => geminiApiKeys[currentGeminiKeyIndex];
+const rotateGeminiKey = () => {
+  currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % geminiApiKeys.length;
+  return getCurrentGeminiKey();
+};
+
+async function queryGemini(params) {
+  let lastError = null;
+  const attempts = geminiApiKeys.length;
+
+  for (let i = 0; i < attempts; i += 1) {
+    const currentIndex = currentGeminiKeyIndex;
+    const apiKey = getCurrentGeminiKey();
+    const client = new GoogleGenAI({ apiKey });
+
+    try {
+      return await client.models.generateContent(params);
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        `Gemini request failed with key index ${currentIndex}: ${err.message}`
+      );
+      if (i < attempts - 1) {
+        const nextKey = rotateGeminiKey();
+        console.warn(`Rotating Gemini key to index ${currentGeminiKeyIndex}`);
+      }
+    }
+  }
+
+  throw lastError || new Error("Gemini API request failed for all configured keys.");
+}
 
 app.post("/review", async (req, res) => {
   const { code, language } = req.body;
@@ -22,7 +61,7 @@ app.post("/review", async (req, res) => {
   }
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await queryGemini({
       model: "gemini-3-flash-preview",
       contents: `
 You are a senior developer.
@@ -56,7 +95,7 @@ app.post("/fix", async (req, res) => {
   }
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await queryGemini({
       model: "gemini-3-flash-preview",
       contents: `You are a senior developer. Fix the following ${language} code by correcting any bugs, improving syntax, and following best practices. Return only the corrected code without any explanations or markdown formatting.
 
@@ -164,7 +203,7 @@ app.post("/github/review-files", async (req, res) => {
         const language = filePath.split(".").pop();
 
         // Review the file
-        const review = await ai.models.generateContent({
+        const review = await queryGemini({
           model: "gemini-3-flash-preview",
           contents: `You are a senior developer.
 Review the following ${language} code from file "${filePath}":
@@ -180,7 +219,7 @@ Your job is to deeply review this code and provide:
         });
 
         // Get the fixed version
-        const fixedReview = await ai.models.generateContent({
+        const fixedReview = await queryGemini({
           model: "gemini-3-flash-preview",
           contents: `You are a senior developer. Fix the following ${language} code by correcting any bugs, improving syntax, and following best practices. Return only the corrected code without any explanations or markdown formatting.
 
@@ -227,14 +266,13 @@ app.post("/github/create-pr", async (req, res) => {
       repo = match[2].replace(".git", "");
     } else {
       const parts = repoUrl.split("/");
-      if (parts.length !== 2) throw new Error("Invalid repo format");
       owner = parts[0];
       repo = parts[1];
     }
 
     const octokit = new Octokit({ auth: token });
 
-    // Validate access and get default branch
+    // Get the default branch
     const { data: repoData } = await octokit.rest.repos.get({ owner, repo });
     const baseBranch = repoData.default_branch;
 
@@ -246,26 +284,13 @@ app.post("/github/create-pr", async (req, res) => {
     });
     const baseCommitSha = refData.object.sha;
 
-    // Create new branch only if it does not already exist
-    try {
-      await octokit.rest.git.getRef({
-        owner,
-        repo,
-        ref: `heads/${branchName}`,
-      });
-      console.log(`Branch ${branchName} already exists, continuing with it.`);
-    } catch (branchErr) {
-      if (branchErr.status === 404) {
-        await octokit.rest.git.createRef({
-          owner,
-          repo,
-          ref: `refs/heads/${branchName}`,
-          sha: baseCommitSha,
-        });
-      } else {
-        throw branchErr;
-      }
-    }
+    // Create new branch
+    await octokit.rest.git.createRef({
+      owner,
+      repo,
+      ref: `refs/heads/${branchName}`,
+      sha: baseCommitSha,
+    });
 
     // Update files with fixed code
     for (const review of reviews) {
@@ -303,14 +328,7 @@ app.post("/github/create-pr", async (req, res) => {
       message: "Pull request created successfully!",
     });
   } catch (err) {
-    const message = err.message || "Failed to create pull request";
-    const guidance = message.includes("Resource not accessible by personal access token")
-      ? "Make sure your GitHub PAT has the `repo` scope and write access to this repository. If the repo belongs to an organization, ensure the token is granted access to that organization."
-      : "";
-
-    res.status(500).json({
-      error: `${message}${guidance ? ` ${guidance}` : ""}`,
-    });
+    res.status(500).json({ error: err.message || "Failed to create pull request" });
   }
 });
 
