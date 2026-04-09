@@ -1,6 +1,9 @@
 {
   "name": "codeify-backend",
   "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@google/genai": "^0.7.0",
     "@google/generative-ai": "^0.24.1",

@@ -6,6 +6,12 @@ import Select from 'react-select';
 import Markdown from 'react-markdown';
 import { ClimbingBoxLoader } from "react-spinners";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD
+    ? "https://codeify-ai-powered-code-reviewer.onrender.com"
+    : "http://localhost:3001");
+
 const App = () => {
   const options = [
     { value: 'javascript', label: 'JavaScript' },
@@ -103,7 +109,7 @@ const App = () => {
       setResponse("");
       setLoading(true);
 
-      const res = await fetch("https://codeify-ai-powered-code-reviewer.onrender.com/review", {
+      const res = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -113,13 +119,14 @@ const App = () => {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to review code");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to review code");
       }
 
       const data = await res.json();
       setResponse(data.text || "No response received.");
     } catch (err) {
-      setResponse("Error while reviewing code. Please try again.");
+      setResponse(`Error while reviewing code: ${err.message || "Please try again."}`);
     } finally {
       setLoading(false);
     }
@@ -135,7 +142,7 @@ const App = () => {
       setResponse("");
       setLoading(true);
 
-      const res = await fetch("http://localhost:3001/fix", {
+      const res = await fetch(`${API_BASE_URL}/fix`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -145,7 +152,8 @@ const App = () => {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to fix code");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fix code");
       }
 
       const data = await res.json();
@@ -153,7 +161,7 @@ const App = () => {
       setCode(fixedCode);
       setResponse("Code has been fixed! The corrected code is now in the editor.");
     } catch (err) {
-      setResponse("Error while fixing code. Please try again.");
+      setResponse(`Error while fixing code: ${err.message || "Please try again."}`);
     } finally {
       setLoading(false);
     }
@@ -170,7 +178,7 @@ const App = () => {
       setGithubLoading(true);
       setGithubResponse("");
 
-      const res = await fetch("http://localhost:3001/github/files", {
+      const res = await fetch(`${API_BASE_URL}/github/files`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -221,7 +229,7 @@ const App = () => {
       setGithubLoading(true);
       setGithubResponse("");
 
-      const res = await fetch("http://localhost:3001/github/review-files", {
+      const res = await fetch(`${API_BASE_URL}/github/review-files`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -258,7 +266,7 @@ const App = () => {
       setGithubLoading(true);
       setGithubResponse("");
 
-      const res = await fetch("http://localhost:3001/github/create-pr", {
+      const res = await fetch(`${API_BASE_URL}/github/create-pr`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

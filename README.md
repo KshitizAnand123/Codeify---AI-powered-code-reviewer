@@ -1,16 +1,108 @@
-# React + Vite
+# Codeify
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Codeify is an AI-powered code reviewer with a React frontend and an Express backend.
 
-Currently, two official plugins are available:
+## Judge-demo recommendation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+For a low-latency public demo from a live link:
 
-## React Compiler
+- deploy the frontend on GitHub Pages
+- deploy the backend on Render
+- use `Gemini` on the deployed backend
+- use `gemini-2.5-flash-lite` as primary model
+- use `gemini-2.5-flash` as backup model
+- use a paid Render web service to avoid cold starts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This repository is now optimized for:
 
-## Expanding the ESLint configuration
+- fast review responses
+- fast fix responses
+- lower error rates through retries, model fallback, and response caching
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Fast backend setup
+
+Recommended deployed backend environment:
+
+```env
+AI_PROVIDER=gemini
+AI_FALLBACK_PROVIDER=
+GEMINI_API_KEY=your_real_key
+GEMINI_MODEL=gemini-2.5-flash-lite
+GEMINI_FALLBACK_MODEL=gemini-2.5-flash
+REQUEST_TIMEOUT_MS=20000
+REVIEW_MAX_OUTPUT_TOKENS=500
+FIX_MAX_OUTPUT_TOKENS=1800
+AI_CACHE_TTL_MS=300000
+MAX_CODE_CHARS=12000
+PORT=3001
+```
+
+Render service settings:
+
+- Root Directory: `server`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+Use a paid Render instance for the demo. Free instances can sleep and wake slowly.
+
+## GitHub Pages frontend
+
+Before deploying the frontend:
+
+```powershell
+cd Codeify
+$env:VITE_API_BASE_URL="https://your-render-backend.onrender.com"
+npm install
+npm run deploy
+```
+
+The frontend keeps the GitHub Pages base path and sends API calls to the hosted backend.
+
+## Local development
+
+Frontend:
+
+```powershell
+cd Codeify
+npm install
+npm run dev
+```
+
+Backend:
+
+```powershell
+cd Codeify\server
+npm install
+npm start
+```
+
+For local Ollama use, set:
+
+```env
+AI_PROVIDER=ollama
+AI_FALLBACK_PROVIDER=
+OLLAMA_API_URL=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:0.5b
+```
+
+## Why this is faster now
+
+- review prompts are shorter
+- fix prompts are shorter
+- response sizes are capped
+- Gemini requests retry across models and keys
+- identical requests are cached briefly
+- GitHub multi-file review now runs with limited concurrency
+
+## Health check
+
+After deploying the backend, verify:
+
+```text
+https://your-render-backend.onrender.com/health
+```
+
+You want:
+
+- `status: "ready"`
+- Gemini configured with both fast and fallback models
