@@ -460,7 +460,8 @@ const App = () => {
                             className="w-6 h-6 accent-purple-600 rounded"
                           />
                           <div className="flex-1 min-w-0">
-                            <span className="text-zinc-300 font-medium block truncate text-base">{file.name}</span>
+                            <span className="text-zinc-200 font-semibold block text-base break-all">{file.name}</span>
+                            <span className="text-sm text-zinc-500 block break-all">{file.path}</span>
                             <span className="text-sm text-zinc-500">{(file.size / 1024).toFixed(2)} KB</span>
                           </div>
                         </label>

@@ -337,6 +337,63 @@ function cleanFixedCode(text = "") {
     .trim();
 }
 
+function parseGitHubRepoInput(repoUrl = "") {
+  if (repoUrl.includes("github.com")) {
+    const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) {
+      throw new Error("Invalid GitHub URL");
+    }
+
+    return {
+      owner: match[1],
+      repo: match[2].replace(".git", ""),
+    };
+  }
+
+  const parts = repoUrl.split("/");
+  if (parts.length !== 2) {
+    throw new Error("Invalid repo format");
+  }
+
+  return {
+    owner: parts[0],
+    repo: parts[1],
+  };
+}
+
+async function listRepositoryCodeFiles(octokit, owner, repo) {
+  const codeExtensions = [
+    ".js", ".jsx", ".ts", ".tsx", ".py", ".java", ".cpp", ".c", ".cs",
+    ".go", ".rs", ".php", ".rb", ".swift", ".kt", ".dart", ".r", ".sql",
+    ".yaml", ".yml", ".json", ".html", ".css", ".scss", ".md"
+  ];
+
+  const { data: repoData } = await octokit.rest.repos.get({ owner, repo });
+  const defaultBranch = repoData.default_branch;
+
+  const { data: branchData } = await octokit.rest.repos.getBranch({
+    owner,
+    repo,
+    branch: defaultBranch,
+  });
+
+  const { data: treeData } = await octokit.rest.git.getTree({
+    owner,
+    repo,
+    tree_sha: branchData.commit.sha,
+    recursive: "true",
+  });
+
+  return (treeData.tree || [])
+    .filter((item) => item.type === "blob" && codeExtensions.some((ext) => item.path.endsWith(ext)))
+    .map((item) => ({
+      name: item.path.split("/").pop(),
+      path: item.path,
+      size: item.size ?? 0,
+    }))
+    .sort((a, b) => a.path.localeCompare(b.path));
+}
+
 async function mapWithConcurrency(items, concurrency, mapper) {
   const results = new Array(items.length);
   let currentIndex = 0;
@@ -419,46 +476,9 @@ app.post("/github/files", async (req, res) => {
   }
 
   try {
-    let owner;
-    let repo;
-
-    if (repoUrl.includes("github.com")) {
-      const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
-      if (!match) {
-        throw new Error("Invalid GitHub URL");
-      }
-      owner = match[1];
-      repo = match[2].replace(".git", "");
-    } else {
-      const parts = repoUrl.split("/");
-      if (parts.length !== 2) {
-        throw new Error("Invalid repo format");
-      }
-      owner = parts[0];
-      repo = parts[1];
-    }
-
+    const { owner, repo } = parseGitHubRepoInput(repoUrl);
     const octokit = new Octokit({ auth: token });
-    const { data } = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: "",
-    });
-
-    const codeExtensions = [
-      ".js", ".jsx", ".ts", ".tsx", ".py", ".java", ".cpp", ".c", ".cs",
-      ".go", ".rs", ".php", ".rb", ".swift", ".kt", ".dart", ".r", ".sql",
-      ".yaml", ".yml", ".json", ".html", ".css", ".scss", ".md"
-    ];
-
-    const files = data
-      .filter((item) => item.type === "file" && codeExtensions.some((ext) => item.name.endsWith(ext)))
-      .map((item) => ({
-        name: item.name,
-        path: item.path,
-        size: item.size,
-      }));
-
+    const files = await listRepositoryCodeFiles(octokit, owner, repo);
     res.json({ files, owner, repo });
   } catch (err) {
     res.status(500).json({ error: extractErrorMessage(err) || "Failed to fetch repository files" });
@@ -473,21 +493,7 @@ app.post("/github/review-files", async (req, res) => {
   }
 
   try {
-    let owner;
-    let repo;
-
-    if (repoUrl.includes("github.com")) {
-      const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
-      if (!match) {
-        throw new Error("Invalid GitHub URL");
-      }
-      owner = match[1];
-      repo = match[2].replace(".git", "");
-    } else {
-      const parts = repoUrl.split("/");
-      owner = parts[0];
-      repo = parts[1];
-    }
+    const { owner, repo } = parseGitHubRepoInput(repoUrl);
 
     const octokit = new Octokit({ auth: token });
     const reviews = await mapWithConcurrency(selectedFiles, 2, async (filePath) => {
@@ -536,21 +542,7 @@ app.post("/github/create-pr", async (req, res) => {
   }
 
   try {
-    let owner;
-    let repo;
-
-    if (repoUrl.includes("github.com")) {
-      const match = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
-      if (!match) {
-        throw new Error("Invalid GitHub URL");
-      }
-      owner = match[1];
-      repo = match[2].replace(".git", "");
-    } else {
-      const parts = repoUrl.split("/");
-      owner = parts[0];
-      repo = parts[1];
-    }
+    const { owner, repo } = parseGitHubRepoInput(repoUrl);
 
     const octokit = new Octokit({ auth: token });
     const { data: repoData } = await octokit.rest.repos.get({ owner, repo });
